@@ -1,0 +1,422 @@
+buildCmd: gradle build
+testCmd: true
+skipVerification: true
+cbmcArguments:
+  # Do not generate coverage comments on generated tests.
+  java-generate-no-comments: true
+  # Constrain the size of arrays created in the analyzed code.
+  java-max-vla-length: 100000
+phases:
+  -
+    # Phase 0 PRETTY, SIMPLE and SMART - pretty tests, do not test private methods directly, Smart-Harness
+    timeout: 180
+    cbmcArguments:
+      # Use simple models first containers (ArrayList, HashMap, HashSet,...) will have a maximum size of one.
+      classpath: '/tools/cbmc/models-simple-overlay.jar:/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: 1500
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 10
+      # Bound the length of input strings.
+      max-nondet-string-length: 10
+      # Add constraint that strings are printable
+      string-printable: true
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: false
+      # Set an upper bound on loop unwinding.
+      unwind: 1
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # Instrument the file as opposed to the function only
+      cover-only: file
+      # Set string input value
+      string-input-value: ["foo", "Bar", "BAZ", "1234", "1a 2b 3c", "A1B2C3", "a,b,c", "1", "2", "3", "a/b/c", "a'b'c", ",", "/", "'"]
+      # Instantiate classes using the simplest constructor strategy
+      smart-harness: simplest-constructor-and-nondet
+  -
+    # Phase 1 PRETTY AND COMPLEX - standard models only, pretty tests, do not test private methods directly, input factory
+    timeout: 180
+    cbmcArguments:
+      # Use the standard models library
+      classpath: '/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: false
+      # never initialize reference-typed parameter to the entry point with null
+      java-assume-inputs-non-null: true
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 10
+      # Bound the length of input strings.
+      max-nondet-string-length: 10
+      # Add constraint that strings are printable
+      string-printable: true
+      # Set string input value
+      string-input-value: ["foo", "Bar", "BAZ", "1234", "1a 2b 3c", "A1B2C3", "a,b,c", "1", "2", "3", "a/b/c", "a'b'c", ",", "/", "'"]
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: false
+      # Set an upper bound on loop unwinding.
+      unwind: 2
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # instrument the file as opposed to the function only
+      cover-only: file
+      # Limit input factory recursive depth (default 0 = no recursion allowed)
+      java-test-input-factory-bmc-recursion-limit: 4
+  -
+    # Phase 2 FIFO Strategy - pretty tests, do not test private methods directly, fifo
+    timeout: 100
+    cbmcArguments:
+      # Use the standard models library
+      classpath: '/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: false
+      # never initialize reference-typed parameter to the entry point with null
+      java-assume-inputs-non-null: true
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 30
+      # Add constraint that strings are printable
+      max-nondet-string-length: 100
+      # Explores the program tree breadth-first.
+      paths: fifo
+      # Set string input value
+      string-input-value: ["foo", "Bar", "BAZ", "1234", "1a 2b 3c", "A1B2C3", "a,b,c", "1", "2", "3", "a/b/c", "a'b'c", ",", "/", "'"]
+      # Add constraint that strings are printable
+      string-printable: true
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: false
+      # Set an upper bound on loop unwinding.
+      unwind: false
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # instrument the file as opposed to the function only
+      cover-only: file
+  -
+    # Phase 3 Exceptions - do not test private methods directly
+    timeout: 180
+    cbmcArguments:
+      # Use simple models containers first (ArrayList, HashMap, HashSet,...) will have a maximum size of one.
+      classpath: '/tools/cbmc/models-simple-overlay.jar:/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: false
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 30
+      # Bound the length of input strings.
+      max-nondet-string-length: 30
+      # Add constraint that strings are printable
+      string-printable: false
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: true
+      # Set an upper bound on loop unwinding.
+      unwind: 3
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # instrument the file as opposed to the function only
+      cover-only: file
+  -
+    # Phase 4 Direct testing - test private methods directly, increased reflection
+    timeout: 180
+    cbmcArguments:
+      # Use simple models containers first (ArrayList, HashMap, HashSet,...) will have a maximum size of one.
+      classpath: '/tools/cbmc/models-simple-overlay.jar:/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: 1500
+      # never initialize reference-typed parameter to the entry point with null
+      java-assume-inputs-non-null: true
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 10
+      # Bound the length of input strings.
+      max-nondet-string-length: 10
+      # Add constraint that strings are printable
+      string-printable: true
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: false
+      # Set an upper bound on loop unwinding.
+      unwind: 1
+      # Set string input value
+      string-input-value: ["foo", "Bar", "BAZ", "1234", "1a 2b 3c", "A1B2C3", "a,b,c", "1", "2", "3", "a/b/c", "a'b'c", ",", "/", "'"]
+      # If the logs contain output of the following then proceed to phase X
+    nextPhase:
+      # If the function is not analysable then do not pass onto the next phase
+      not_analyzed: null
+  -
+    # PHASE 5 Mocking - aggressive mocking, do not test private methods directly
+    timeout: 180
+    cbmcArguments:
+      # Use simple models containers first (ArrayList, HashMap, HashSet,...) will have a maximum size of one.
+      classpath: '/tools/cbmc/models-simple-overlay.jar:/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: 3000
+      # never initialize reference-typed parameter to the entry point with null
+      java-assume-inputs-non-null: true
+      # Only load the class (and related inner/outer classes) containing the method under test,
+      load-containing-class-only: true
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 30
+      # Bound the length of input strings.
+      max-nondet-string-length: 100
+      # Add constraint that strings are printable
+      string-printable: false
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: true
+      # Set an upper bound on loop unwinding.
+      unwind: 3
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # instrument the file as opposed to the function only
+      cover-only: file
+units:
+ - target:
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/ByteUtils.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/ByteUtils.java
+ - target:
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/rest/RestServer.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/rest/RestServer.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/rest/util/SSLUtils.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/rest/util/SSLUtils.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/KafkaException.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/KafkaException.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/Configurable.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/Configurable.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/isolation/PluginUtils.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/isolation/PluginUtils.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/health/ConnectClusterStateImpl.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/health/ConnectClusterStateImpl.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/config/types/Password.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/config/types/Password.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/config/AbstractConfig$RecordingMap.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/config/AbstractConfig.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/isolation/PluginClassLoader.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/isolation/PluginClassLoader.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResource.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/rest/resources/ConnectorPluginsResource.java
+   - dir: connect/api/build/classes/java/main
+     file: org/apache/kafka/connect/errors/ConnectException.class
+     sourceDir: connect/api/src/main/java
+     sourceFile: org/apache/kafka/connect/errors/ConnectException.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/rest/ConnectRestExtensionContextImpl.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/rest/ConnectRestExtensionContextImpl.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/isolation/Plugins.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/isolation/Plugins.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/rest/ConnectRestConfigurable.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/rest/ConnectRestConfigurable.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/isolation/DelegatingClassLoader.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/isolation/DelegatingClassLoader.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/config/ConfigDef.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/config/ConfigDef.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/Utils.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/Utils.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/config/ConfigDef$Validator.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/config/ConfigDef.java
+   - dir: connect/api/build/classes/java/main
+     file: org/apache/kafka/connect/components/Versioned.class
+     sourceDir: connect/api/src/main/java
+     sourceFile: org/apache/kafka/connect/components/Versioned.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/rest/resources/ConnectorsResource.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/rest/resources/ConnectorsResource.java
+   - dir: connect/api/build/classes/java/main
+     file: org/apache/kafka/connect/rest/ConnectRestExtension.class
+     sourceDir: connect/api/src/main/java
+     sourceFile: org/apache/kafka/connect/rest/ConnectRestExtension.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/WorkerConfig.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/WorkerConfig.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/Herder.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/Herder.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/health/ConnectClusterDetailsImpl.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/health/ConnectClusterDetailsImpl.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/config/AbstractConfig.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/config/AbstractConfig.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/config/ConfigException.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/config/ConfigException.java
+   - dir: connect/runtime/build/classes/java/main
+     file: org/apache/kafka/connect/runtime/rest/resources/RootResource.class
+     sourceDir: connect/runtime/src/main/java
+     sourceFile: org/apache/kafka/connect/runtime/rest/resources/RootResource.java
+ - target:
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/Utils.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/Utils.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/KafkaException.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/KafkaException.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/Utils$2.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/Utils.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/Exit.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/Exit.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/Utils$1.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/Utils.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/Exit$Procedure.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/Exit.java
+ - target:
+   - dir: connect/transforms/build/classes/java/main
+     file: org/apache/kafka/connect/transforms/InsertField$InsertionSpec.class
+     sourceDir: connect/transforms/src/main/java
+     sourceFile: org/apache/kafka/connect/transforms/InsertField.java
+ - target:
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/requests/FetchMetadata.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/requests/FetchMetadata.java
+ - target:
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/record/DefaultRecordBatch.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/record/DefaultRecordBatch.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/record/SimpleRecord.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/record/SimpleRecord.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/errors/CorruptRecordException.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/errors/CorruptRecordException.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/ByteUtils.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/ByteUtils.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/record/DefaultRecord.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/record/DefaultRecord.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/record/AbstractRecordBatch.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/record/AbstractRecordBatch.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/KafkaException.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/KafkaException.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/header/Header.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/header/Header.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/record/DefaultRecordBatch$RecordIterator.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/record/DefaultRecordBatch.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/ByteBufferOutputStream.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/ByteBufferOutputStream.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/record/CompressionType.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/record/CompressionType.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/record/TimestampType.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/record/TimestampType.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/Checksums.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/Checksums.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/record/DefaultRecordBatch$1.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/record/DefaultRecordBatch.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/record/DefaultRecordBatch$2.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/record/DefaultRecordBatch.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/errors/ApiException.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/errors/ApiException.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/errors/RetriableException.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/errors/RetriableException.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/record/InvalidRecordException.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/record/InvalidRecordException.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/CloseableIterator.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/CloseableIterator.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/record/BufferSupplier.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/record/BufferSupplier.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/Utils.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/Utils.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/record/Record.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/record/Record.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/Crc32C.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/Crc32C.java
+   - dir: clients/build/classes/java/main
+     file: org/apache/kafka/common/utils/Crc32C$ChecksumFactory.class
+     sourceDir: clients/src/main/java
+     sourceFile: org/apache/kafka/common/utils/Crc32C.java
